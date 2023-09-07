@@ -1,7 +1,8 @@
 import java.awt.*;
 import java.util.Random;
 
-public class Apple {
+//Apple class for the collectable objects in the game.
+public class Apple extends Entity {
 
     private Point position;
 

@@ -2,14 +2,15 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.LinkedList;
 
-public class Snake {
+//Snake class for the controllable element of the game.
+public class Snake extends Entity{
 
     private LinkedList<Point> body;
     private char direction;
     private boolean grow;
 
     public Snake() {
-        body = new LinkedList<>();
+        body = new LinkedList<>(); //The Snake uses a linked list to track the growth and position of it's body.
         direction = 'R';
         grow = false;
     }
