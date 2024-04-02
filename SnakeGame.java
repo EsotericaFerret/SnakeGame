@@ -10,34 +10,22 @@ import java.util.Scanner;
 
 public class SnakeGame extends JPanel implements ActionListener { //The SnakeGame itself is a JPanel container.
 
-    static final int WIDTH = 800;
-    static final int HEIGHT = 800;
-    static final int UNIT_SIZE = 20;
+    static public int WIDTH;
+    static public int HEIGHT;
+    static int UNIT_SIZE = 20;
     private static final int DELAY = 100;
-    Scanner fileScanner = new Scanner(new File("score.txt"));
+    Scanner fileScanner;
     private Snake snake;
     private Apple apple;
     private Timer timer;
     static boolean running;
     private Clip eatSound;
     private Clip gameOverSound;
-    private JButton startButton;
-    private JTextField scoreTextField = new JTextField(4); //Text Field for displaying the score.
     private int score = 0;
     private int highScore;
-    private ActionListener startButtonListener = e -> {
-        if (running) {
-            // If the game is running, clicking the button will reset the game
-            startGame();
-        } else {
-            // If the game is not running, clicking the button will start a new game
-            startGame();
-        }
-    };
     
-
+    
     public SnakeGame() throws IOException {
-        highScore = fileScanner.nextInt();
         score = 0;
         snake = new Snake(); //instantiates an instance of the Snake class.
         apple = new Apple(); //instantiates an instance of the Apple class.
@@ -51,26 +39,12 @@ public class SnakeGame extends JPanel implements ActionListener { //The SnakeGam
         } catch (IOException | UnsupportedAudioFileException | LineUnavailableException e) {
             e.printStackTrace();
         }
-        setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.black);
+        Main.menu.setBackground(Color.white);
         setFocusable(true);
         addKeyListener(new MyKeyAdapter());
-        startButton = new JButton("Start Game"); //JButton that lets you start the game.
-        startButton.addActionListener(startButtonListener);
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Trigger the button's ActionListener when Enter key is pressed
-                    startButton.doClick();}
-                }
-            });
-        startButton.setFocusable(false);
-        scoreTextField.setEditable(false);
-        scoreTextField.setFocusable(false);
-        Main.frame.add(scoreTextField, BorderLayout.PAGE_END);
-        Main.frame.add(startButton, BorderLayout.PAGE_END);
-    }
+        
+    };
 //Method to check the current score versus the score stored in score.txt. If the new score is higher, it will write the new score to score.txt. Otherwise, it writes the old score back to the same file.
     public void checkScore(int newScore, int oldScore) {
         FileWriter fw = null;
@@ -85,6 +59,7 @@ public class SnakeGame extends JPanel implements ActionListener { //The SnakeGam
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            highScore = newScore;
         }
         else {
             try {
@@ -100,7 +75,40 @@ public class SnakeGame extends JPanel implements ActionListener { //The SnakeGam
         }
     }
 //Method starts the game, placing the snake and apple on the field.
-    public void startGame() {
+    public void startGame(int difficulty) throws Exception {
+        //Set window size based on difficulty
+        if (difficulty == 1){
+            fileScanner = new Scanner(new File("scoreeasy.txt"));
+            Main.menu.setPreferredSize(new Dimension(1020, 1020));
+            setPreferredSize(new Dimension(1000, 1000));
+            WIDTH = 1000;
+            HEIGHT = 1000;
+            Main.frame.pack();
+        }
+        else if (difficulty == 2){
+            fileScanner = new Scanner(new File("scoremedium.txt"));
+            Main.menu.setPreferredSize(new Dimension(820, 820));
+            setPreferredSize(new Dimension(800, 800));
+            WIDTH = 800;
+            HEIGHT = 800;
+            Main.frame.pack();
+        }
+        else if (difficulty == 3) {
+            fileScanner = new Scanner(new File("scorehard.txt"));
+            Main.menu.setPreferredSize(new Dimension(620, 620));
+            setPreferredSize(new Dimension(600, 600));
+            WIDTH = 600;
+            HEIGHT = 600;
+            Main.frame.pack();
+        }
+        else if (difficulty == 4) {
+            fileScanner = new Scanner(new File("scoreinsane.txt"));
+            Main.menu.setPreferredSize(new Dimension(420, 420));
+            setPreferredSize(new Dimension(400, 400));
+            WIDTH = 400;
+            HEIGHT = 400;
+            Main.frame.pack();
+        }
         // Stop and nullify the timer
         if (timer != null) {
             timer.stop();
@@ -112,7 +120,7 @@ public class SnakeGame extends JPanel implements ActionListener { //The SnakeGam
         running = true;
         timer = new Timer(DELAY, this);
         timer.start();
-        startButton.setText("New Game"); // Change button text to "New Game"
+        highScore = fileScanner.nextInt();
     }
 //Checks for snake collisions with itself, the walls and an apple. Walls or itself result in game over, while an apple causes the snake to grow and the eating sound to play.
     public void checkCollision() {
@@ -123,11 +131,11 @@ public class SnakeGame extends JPanel implements ActionListener { //The SnakeGam
             gameOverSound.stop();
             gameOverSound.setFramePosition(0);
             gameOverSound.start();
+            menuReturnButton();
         } else if (snake.getHead().equals(apple.getPosition())) {
             snake.grow();
             apple.spawn();
             score++;
-            scoreTextField.setText(((Integer)score).toString());
             eatSound.stop();
             eatSound.setFramePosition(0); // Rewind to the beginning of the sound
             eatSound.start();
@@ -144,8 +152,8 @@ public class SnakeGame extends JPanel implements ActionListener { //The SnakeGam
     }
 //Overide of paintComponent method to redraw the screen.
     @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
+    public void paint(Graphics g) {
+        super.paint(g);
 
         if (running) {
             snake.draw(g);
@@ -153,20 +161,47 @@ public class SnakeGame extends JPanel implements ActionListener { //The SnakeGam
         } else {
             gameOver(g);
         }
+        highScoreCounter(g);
+        currentScoreCounter(g);
     }
 //Method holds the logic for the Game Over graphic, which displays before the game has begun and after it ends.
     public void gameOver(Graphics g) {
         g.setColor(Color.red);
         g.setFont(new Font("Arial", Font.BOLD, 40));
-        g.drawString("Game Over!", WIDTH / 4, HEIGHT / 2);
-        startButton.setText("Start Game"); // Change button text to "Start Game"
+        g.drawString("Game Over!", WIDTH * 3 / 8, HEIGHT * 3 / 7);
+    }
+    public void currentScoreCounter(Graphics g) {
+        g.setColor(Color.green);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString(((Integer)score).toString(), 10, 25);
+    }
+    public void highScoreCounter(Graphics g) {
+        g.setColor(Color.red);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString(((Integer)highScore).toString(), WIDTH - 25, 25);
     }
 //KeyAdapter that listens for the arrow keys to be pressed, overrides keyPressed to pass the information to the snake's changeDirection method.
     private class MyKeyAdapter extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
+            actionPerformed(null);
             int key = e.getKeyCode();
             snake.changeDirection(key);
         }
     }
+    private void menuReturnButton() {
+        JButton menuButton = new JButton("Main Menu");
+        menuButton.addActionListener(menuButtonListener);
+        menuButton.setBackground(Color.red);
+        add(menuButton, BorderLayout.CENTER);
+        Main.frame.pack();
+    }
+
+    private ActionListener menuButtonListener = e -> {
+        Main.menu.buttonGroup.setVisible(true);
+        Main.menu.snakeGame.setVisible(false);
+        Main.menu.setBackground(Color.black);
+        Main.menu.setPreferredSize(new Dimension(800, 800));
+        Main.frame.pack();
+    };
 }

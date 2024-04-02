@@ -1,6 +1,9 @@
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.LinkedList;
+import javax.imageio.ImageIO;
 
 //Snake class for the controllable element of the game.
 public class Snake extends Entity{
@@ -8,6 +11,8 @@ public class Snake extends Entity{
     private LinkedList<Point> body;
     private char direction;
     private boolean grow;
+    private BufferedImage snake;
+    private Graphics2D rescaledSnake;
 
     public Snake() {
         body = new LinkedList<>(); //The Snake uses a linked list to track the growth and position of it's body.
@@ -15,11 +20,12 @@ public class Snake extends Entity{
         grow = false;
     }
 
-    public void initialize() {
+    public void initialize() throws IOException {
         body.clear();
         body.add(new Point(2, 0));
         body.add(new Point(1, 0));
         body.add(new Point(0, 0));
+        snake = ImageIO.read(new File("wormGreen.png"));
         direction = 'R';
         grow = false;
     }
@@ -74,9 +80,8 @@ public class Snake extends Entity{
     }
 
     public void draw(Graphics g) {
-        g.setColor(Color.green);
         for (Point point : body) {
-            g.fillRect(point.x * SnakeGame.UNIT_SIZE, point.y * SnakeGame.UNIT_SIZE, SnakeGame.UNIT_SIZE, SnakeGame.UNIT_SIZE);
+            g.drawImage(snake, point.x * SnakeGame.UNIT_SIZE, point.y * SnakeGame.UNIT_SIZE, null);
         }
     }
 
